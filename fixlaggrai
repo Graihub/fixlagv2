@@ -1,0 +1,180 @@
+--// Fix Lag Menu - UI Redesign by ChatGPT
+
+-- Services
+local Players = game:GetService("Players")
+local Lighting = game:GetService("Lighting")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+-- Save original states
+local originalLighting = {
+    Brightness = Lighting.Brightness,
+    GlobalShadows = Lighting.GlobalShadows,
+    FogEnd = Lighting.FogEnd
+}
+local originalParts, originalPlayers = {}, {}
+for _,v in pairs(workspace:GetDescendants()) do
+    if v:IsA("BasePart") then
+        originalParts[v] = {Transparency = v.Transparency, Material = v.Material}
+    end
+end
+
+-- GUI
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+
+-- Toggle Button
+local ToggleBtn = Instance.new("TextButton", ScreenGui)
+ToggleBtn.Size = UDim2.new(0, 45, 0, 45)
+ToggleBtn.Position = UDim2.new(0, 20, 0, 20)
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+ToggleBtn.Text = "≡"
+ToggleBtn.TextColor3 = Color3.fromRGB(255,255,255)
+ToggleBtn.Font = Enum.Font.GothamBold
+ToggleBtn.TextSize = 20
+local ToggleCorner = Instance.new("UICorner", ToggleBtn)
+ToggleCorner.CornerRadius = UDim.new(0, 12)
+local ToggleStroke = Instance.new("UIStroke", ToggleBtn)
+ToggleStroke.Thickness = 2
+ToggleStroke.Color = Color3.fromRGB(255, 255, 255)
+
+-- Main Frame
+local MainFrame = Instance.new("Frame", ScreenGui)
+MainFrame.Size = UDim2.new(0, 280, 0, 280)
+MainFrame.Position = UDim2.new(0, 80, 0, 20)
+MainFrame.BackgroundColor3 = Color3.fromRGB(25,25,25)
+MainFrame.Active = true
+MainFrame.Draggable = true
+local FrameCorner = Instance.new("UICorner", MainFrame)
+FrameCorner.CornerRadius = UDim.new(0, 14)
+local FrameStroke = Instance.new("UIStroke", MainFrame)
+FrameStroke.Thickness = 2
+FrameStroke.Color = Color3.fromRGB(200,50,50)
+
+-- Title
+local Title = Instance.new("TextLabel", MainFrame)
+Title.Size = UDim2.new(1, 0, 0, 50)
+Title.BackgroundTransparency = 1
+Title.Text = "⚡ Fix Lag Menu"
+Title.TextColor3 = Color3.fromRGB(255,255,255)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 20
+
+-- Functions
+local function fixLag()
+    for _,v in pairs(workspace:GetDescendants()) do
+        if v:IsA("BasePart") then
+            v.Material = Enum.Material.SmoothPlastic
+            v.Reflectance = 0
+        elseif v:IsA("Decal") or v:IsA("Texture") then
+            v.Transparency = 1
+        elseif v:IsA("ParticleEmitter") or v:IsA("Trail") then
+            v.Enabled = false
+        elseif v:IsA("Fire") or v:IsA("Smoke") then
+            v:Destroy()
+        end
+    end
+    Lighting.GlobalShadows = false
+    Lighting.FogEnd = 1e9
+    Lighting.Brightness = 1
+end
+
+local function removePlayers()
+    for _,plr in pairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer and plr.Character then
+            plr.Character.Parent = nil
+            originalPlayers[plr] = true
+        end
+    end
+end
+
+local function hideMap()
+    for part,_ in pairs(originalParts) do
+        if part:IsA("BasePart") then
+            part.Transparency = 1
+            part.CanCollide = true
+        end
+    end
+end
+
+local function resetAll()
+    Lighting.Brightness = originalLighting.Brightness
+    Lighting.GlobalShadows = originalLighting.GlobalShadows
+    Lighting.FogEnd = originalLighting.FogEnd
+
+    for part,props in pairs(originalParts) do
+        if part:IsA("BasePart") then
+            part.Transparency = props.Transparency
+            part.Material = props.Material
+        end
+    end
+
+    for plr,_ in pairs(originalPlayers) do
+        if not plr.Character then
+            plr:LoadCharacter()
+        end
+    end
+    originalPlayers = {}
+end
+
+-- Button Generator (UI đẹp với hover)
+local function createButton(name, pos, callback)
+    local btn = Instance.new("TextButton", MainFrame)
+    btn.Size = UDim2.new(1, -30, 0, 40)
+    btn.Position = UDim2.new(0, 15, 0, pos)
+    btn.BackgroundColor3 = Color3.fromRGB(40,40,40)
+    btn.Text = name
+    btn.TextColor3 = Color3.fromRGB(255,255,255)
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 16
+    local c = Instance.new("UICorner", btn)
+    c.CornerRadius = UDim.new(0, 10)
+    local s = Instance.new("UIStroke", btn)
+    s.Color = Color3.fromRGB(200,50,50)
+    s.Thickness = 1.5
+
+    btn.MouseEnter:Connect(function()
+        btn.BackgroundColor3 = Color3.fromRGB(200,50,50)
+        s.Color = Color3.fromRGB(255,255,255)
+    end)
+    btn.MouseLeave:Connect(function()
+        btn.BackgroundColor3 = Color3.fromRGB(40,40,40)
+        s.Color = Color3.fromRGB(200,50,50)
+    end)
+
+    btn.MouseButton1Click:Connect(callback)
+end
+
+-- Buttons
+createButton("Fix Lag", 60, fixLag)
+createButton("Remove Players", 110, removePlayers)
+createButton("Hide Map", 160, hideMap)
+createButton("Reset All", 210, resetAll)
+
+-- FPS + Ping
+local StatsLabel = Instance.new("TextLabel", ScreenGui)
+StatsLabel.Size = UDim2.new(0, 220, 0, 40)
+StatsLabel.Position = UDim2.new(1, -230, 0, 20)
+StatsLabel.BackgroundTransparency = 0.2
+StatsLabel.BackgroundColor3 = Color3.fromRGB(25,25,25)
+StatsLabel.TextColor3 = Color3.fromRGB(0,255,0)
+StatsLabel.Font = Enum.Font.GothamBold
+StatsLabel.TextSize = 16
+StatsLabel.Text = "FPS: 0 | Ping: 0"
+local stCorner = Instance.new("UICorner", StatsLabel)
+stCorner.CornerRadius = UDim.new(0, 10)
+
+RunService.RenderStepped:Connect(function(dt)
+    local fps = math.floor(1/dt)
+    local ping = game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValueString()
+    StatsLabel.Text = "FPS: "..fps.." | Ping: "..ping
+end)
+
+-- Toggle Menu
+local menuOpen = true
+ToggleBtn.MouseButton1Click:Connect(function()
+    menuOpen = not menuOpen
+    MainFrame.Visible = menuOpen
+    ToggleBtn.Text = menuOpen and "≡" or "+"
+end)
+
+print("✅ Fix Lag Menu (UI Redesign) Loaded")
