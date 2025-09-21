@@ -1,5 +1,4 @@
---// Fix Lag Menu - UI Redesign by ChatGPT
-
+--// Fix Lag Menu
 -- Services
 local Players = game:GetService("Players")
 local Lighting = game:GetService("Lighting")
@@ -54,7 +53,7 @@ FrameStroke.Color = Color3.fromRGB(200,50,50)
 local Title = Instance.new("TextLabel", MainFrame)
 Title.Size = UDim2.new(1, 0, 0, 50)
 Title.BackgroundTransparency = 1
-Title.Text = "⚡ Fix Lag Menu"
+Title.Text = "Grai Fix Lag"
 Title.TextColor3 = Color3.fromRGB(255,255,255)
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 20
